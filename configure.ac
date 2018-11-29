@@ -47,6 +47,11 @@ AC_ARG_VAR([PYTHON_CPPFLAGS],
 AC_ARG_VAR([PYTHON_LIBS],
 	[Libraries to link into Python extensions [default: auto-detect]])
 
+AC_ARG_VAR([LUA_CPPFLAGS],
+	[Compiler flags to find Lua headers [default: auto-detect]])
+AC_ARG_VAR([LUA_LIBS],
+	[Libraries to link into Lua extensions [default: auto-detect]])
+
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADER([config.h])
 
@@ -60,6 +65,7 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
+AX_PROG_LUA([5.1])
 
 AC_DEFUN([ERR_NOT_FOUND],
 	[AC_MSG_ERROR([$1 not found (needed to build $2)], [1])])
@@ -184,6 +190,31 @@ then
 		[AC_SUBST(PYTHON_LIBS, [`$PYTHON-config --libs`])])
 fi
 
+AC_ARG_ENABLE([bindings-lua],
+	[AC_HELP_STRING([--enable-bindings-lua],
+		[enable lua5.1 bindings [default=no]])],
+	[
+		if test "x$enableval" = xyes
+		then
+			with_bindings_lua=true
+		else
+			with_bindings_lua=false
+		fi
+	],
+	[with_bindings_lua=false])
+AM_CONDITIONAL([WITH_BINDINGS_LUA], [test "x$with_bindings_lua" = xtrue])
+
+#AX_LUA_LIBS
+AX_LUA_HEADERS
+
+#if test "x$with_bindings_lua" = xtrue
+#then
+#	AS_IF([test -z "$PYTHON_CPPFLAGS"],
+#		[AC_SUBST(PYTHON_CPPFLAGS, [`$PYTHON-config --includes`])])
+#	AS_IF([test -z "$PYTHON_LIBS"],
+#		[AC_SUBST(PYTHON_LIBS, [`$PYTHON-config --libs`])])
+#fi
+
 AC_CHECK_PROG([has_doxygen], [doxygen], [true], [false])
 AM_CONDITIONAL([HAS_DOXYGEN], [test "x$has_doxygen" = xtrue])
 if test "x$has_doxygen" = xfalse
@@ -203,6 +234,7 @@ AC_CONFIG_FILES([libgpiod.pc
 		 bindings/cxx/Makefile
 		 bindings/cxx/examples/Makefile
 		 bindings/python/Makefile
-		 bindings/python/examples/Makefile])
+		 bindings/python/examples/Makefile]
+		 bindings/lua/Makefile)
 
 AC_OUTPUT
